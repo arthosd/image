@@ -1,22 +1,21 @@
 #include <iostream>
 #include <stdlib.h>
 #include <opencv2/opencv.hpp>
+#include "src/components/Image.h"
 
 using namespace std;
 using namespace cv;
 
 int main()
 {
-    Mat image;
-    image = Mat::zeros(512, 512, CV_8UC1);
-    if (image.empty())
-    {
-        printf("No image data \n");
-        return -1;
-    }
-    namedWindow("Display Image", WINDOW_AUTOSIZE);
-    imshow("Display Image", image);
-    waitKey(0);
+
+    // Exemple de pipeline
+
+    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/eau1.jpeg");
+    image.to_gray();
+    image.remove_noise(5);
+    image.detect_edge();
+    image.show("detect");
 
     return 0;
 }
