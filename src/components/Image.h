@@ -17,6 +17,12 @@ public:
     void remove_noise(int ksize);        // Effectue un filtre médian pour supprimer le bruit
     void equalize();                     // Egalise l'histogramme de l'image
     void detect_edge();                  // Trouve les contours de l'image
+    void apply_gabor(int kernel_size,    // On applique gabor sur l'image
+                     double sigma,
+                     double theta,
+                     double lambda,
+                     double gamma,
+                     double phi);
 
 private:
     // Attibuts

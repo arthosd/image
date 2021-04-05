@@ -7,6 +7,23 @@ using namespace std;
 using std::vector;
 
 /*
+    Applique une transformée de gabor avec kernel_size comme taille de filtre
+*/
+void Image::apply_gabor(int kernel_size, double sigma, double theta, double lamda, double gamma, double phi)
+{
+    Mat temps_image;
+    cv::Mat kernel = cv::getGaborKernel(cv::Size(kernel_size, kernel_size),
+                                        sigma,
+                                        theta,
+                                        lamda,
+                                        gamma,
+                                        phi);
+
+    cv::filter2D(this->image, temps_image, CV_32F, kernel);
+    imshow("Kernel Gabor", kernel);
+    this->image = temps_image;
+}
+/*
     Calcul les contours de l'image
 */
 void Image::detect_edge()
