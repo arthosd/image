@@ -30,5 +30,8 @@ private:
     std::string image_path; // Le chemin vers l'image
     int width, height;      // Dimensions de l'image
     int *histogramme;       // Histogramme de l'image
+
+    // Fonctions
+    float get_grey(int x, int y); //Rècupère le niveau de gris d'un pixel à la position X et Y
 };
 #endif

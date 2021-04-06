@@ -93,6 +93,17 @@ void Image::show(string windows_name)
 }
 
 /*
+    Récupère la valeur du pixel gris à la position X et Y
+*/
+float Image::get_grey(int x, int y)
+{
+    Vec3b intensity = this->image.at<Vec3b>(x, y);
+
+    return intensity.val[0];
+}
+
+/*
+    Constructeur de l'image
 */
 Image::Image(string image_path)
 {
