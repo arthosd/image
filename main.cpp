@@ -17,7 +17,7 @@ int main()
     image.to_gray();
     image.remove_noise(5);
     //image.detect_edge();
-    image.apply_gabor(20, 1, M_1_PI / 4, M_1_PI / 1, 0.01, 0); // Fonction de gabor
+    image.apply_gabor(20, 1, M_1_PI / 4, M_1_PI / 1, 0.02, 0); // Fonction de gabor
     image.show("detect");
 
     return 0;

@@ -7,6 +7,15 @@ using namespace std;
 using std::vector;
 
 /*
+    Calcul l'histogramme projeté
+*/
+void Image::projected_histogram()
+{
+    // QUi va contenir l'histogramme projeté
+    cv::Mat temp(this->width, this->height, CV_8UC3, cv::Scalar(0, 0, 0));
+}
+
+/*
     Applique une transformée de gabor avec kernel_size comme taille de filtre
 */
 void Image::apply_gabor(int kernel_size, double sigma, double theta, double lamda, double gamma, double phi)
@@ -20,8 +29,10 @@ void Image::apply_gabor(int kernel_size, double sigma, double theta, double lamd
                                         phi);
 
     cv::filter2D(this->image, temps_image, CV_32F, kernel);
+    //cv::normalize(kernel, kernel, 0, 255, NORM_MINMAX, CV_8UC1);
     imshow("Kernel Gabor", kernel);
     this->image = temps_image;
+    //cv::normalize(temps_image, this->image, 0, 255, NORM_MINMAX, CV_8U);
 }
 /*
     Calcul les contours de l'image
@@ -93,6 +104,14 @@ void Image::show(string windows_name)
 }
 
 /*
+    Set la valeur d'un pixel
+*/
+void Image::set_grey(cv::Mat image, int x, int y, int value)
+{
+    image.at<Vec3b>(x, y) = value; // Set la valeur de l'image
+}
+
+/*
     Récupère la valeur du pixel gris à la position X et Y
 */
 float Image::get_grey(int x, int y)
@@ -111,5 +130,5 @@ Image::Image(string image_path)
     this->height = this->image.size().height; // La hauteur de l'image
     this->width = this->image.size().width;   // La largeur de l'image
     this->image_path = image_path;            // Le chemin vers l'image
-    this->histogramme = new int[255];         // l'Histogramme de l'image
+    this->can_project_histogram = false;      //Vérifie s'il y peux projter l'image
 }
