@@ -20,6 +20,8 @@ public:
     void equalize();                                       // Egalise l'histogramme de l'image
     void detect_edge(int dt, int ut);                      // Trouve les contours de l'image
     void cluster(int nb_cluster);                          // Cluster l'image en utilisant K-Mean
+    cv::Mat hough_transform();                             // Calcul la transformé de hough
+    cv::Mat hough_transform_prob();                        // Calcul la transformé de hough probabiliste
     void apply_gabor(int kernel_size,                      // On applique gabor sur l'image
                      double sigma,
                      double theta,

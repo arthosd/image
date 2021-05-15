@@ -13,12 +13,14 @@ int main()
 
     // Exemple de pipeline
 
-    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/benjy_jus4.jpeg");
+    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/eau3.jpeg");
     image.to_gray();
-    image.remove_noise(5);
-    //image.detect_edge();
-    image.apply_gabor(20, 1, M_1_PI / 4, M_1_PI / 1, 0.02, 0); // Fonction de gabor
+    image.show("TO GREY");
+    image.remove_noise(3);
+    image.detect_edge(100, 120);
     image.show("detect");
+    imshow("Hough", image.hough_transform_prob());
+    waitKey(0);
 
     return 0;
 }

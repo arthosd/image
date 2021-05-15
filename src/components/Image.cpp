@@ -6,6 +6,48 @@ using namespace cv;
 using namespace std;
 using std::vector;
 
+Mat Image::hough_transform_prob()
+{
+    vector<Vec4i> lines; // Contient les lignes qu'on va récupérer
+
+    Mat cdst;
+
+    HoughLinesP(this->image, lines, 1, CV_PI / 180, 50, 50, 10); // Lance la transformé
+
+    cvtColor(this->image, cdst, COLOR_GRAY2BGR);
+
+    for (size_t i = 0; i < lines.size(); i++)
+    {
+        Vec4i l = lines[i];
+        line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
+    }
+
+    return cdst;
+}
+
+Mat Image::hough_transform()
+{
+    vector<Vec2f> lines; //Contient les lignes qu'on va récupérer
+    Mat dst;
+    HoughLines(this->image, lines, 1, CV_PI / 180, 150, 0, 0); // Lance la detection des lignes
+
+    cvtColor(this->image, dst, COLOR_GRAY2BGR);
+
+    for (size_t i = 0; i < lines.size(); i++)
+    {
+        float rho = lines[i][0], theta = lines[i][1];
+        Point pt1, pt2;
+        double a = cos(theta), b = sin(theta);
+        double x0 = a * rho, y0 = b * rho;
+        pt1.x = cvRound(x0 + 1000 * (-b));
+        pt1.y = cvRound(y0 + 1000 * (a));
+        pt2.x = cvRound(x0 - 1000 * (-b));
+        pt2.y = cvRound(y0 - 1000 * (a));
+        line(dst, pt1, pt2, Scalar(0, 0, 255), 3, LINE_AA);
+    }
+
+    return dst;
+}
 /*
     Clusterise l'image en utilisant K-mean
 */
@@ -128,7 +170,7 @@ void Image::equalize()
 void Image::remove_noise(int ksize)
 {
     Mat temp_image;
-    medianBlur(this->image, temp_image, ksize);
+    GaussianBlur(this->image, temp_image, Size(ksize, ksize), 0);
     this->image = temp_image;
 }
 
