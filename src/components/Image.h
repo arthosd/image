@@ -18,7 +18,8 @@ public:
     void otsu();                                           // Effectue un seuillage d'otsu
     void remove_noise(int ksize);                          // Effectue un filtre médian pour supprimer le bruit
     void equalize();                                       // Egalise l'histogramme de l'image
-    void detect_edge();                                    // Trouve les contours de l'image
+    void detect_edge(int dt, int ut);                      // Trouve les contours de l'image
+    void cluster(int nb_cluster);                          // Cluster l'image en utilisant K-Mean
     void apply_gabor(int kernel_size,                      // On applique gabor sur l'image
                      double sigma,
                      double theta,

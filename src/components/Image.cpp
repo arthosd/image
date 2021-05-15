@@ -7,12 +7,80 @@ using namespace std;
 using std::vector;
 
 /*
+    Clusterise l'image en utilisant K-mean
+*/
+void Image::cluster(int nb_cluster)
+{
+    Mat data;
+    Mat pixel(this->height, this->width, CV_32FC3);
+    this->image.convertTo(data, CV_32F); // Convertit l'image en représentation flottante
+
+    /*
+        Data -> contient l'image initial en format float
+        pixel -> Image vide avec les meme dimension que l'image initial
+    */
+
+    // On itère dans l'image flottante initial
+    for (int x = 0; x < this->height; x++)
+    {
+        for (int y = 0; y < this->width; y++)
+        {
+            pixel.at<Vec<float, 5>>(x, y)[0] = data.at<Vec3f>(x, y)[0] / 255;
+            pixel.at<Vec<float, 5>>(x, y)[1] = data.at<Vec3f>(x, y)[1] / 255;
+            pixel.at<Vec<float, 5>>(x, y)[2] = data.at<Vec3f>(x, y)[2] / 255;
+
+            pixel.at<Vec3f>(x, y)[3] = ((float)x) / this->height;
+            pixel.at<Vec3f>(x, y)[4] = ((float)y) / this->width;
+        }
+    }
+
+    pixel = pixel.reshape(1, pixel.total());
+
+    Mat labels, centers;
+
+    kmeans(pixel, nb_cluster, labels, TermCriteria(TermCriteria::MAX_ITER | TermCriteria::EPS, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
+
+    for (int i = 0; i < data.total(); ++i)
+    {
+        //cout << labels.at<int>(i) << "  " << centers.at<float>(labels.at<int>(i)) << endl;
+        data.at<Vec3f>(i)[0] = centers.at<float>(labels.at<int>(i), 0) * 255;
+        data.at<Vec3f>(i)[1] = centers.at<float>(labels.at<int>(i), 0) * 255;
+        data.at<Vec3f>(i)[2] = centers.at<float>(labels.at<int>(i), 0) * 255;
+    }
+
+    data = data.reshape(this->image.channels(), this->image.rows);
+    data.convertTo(data, CV_8U);
+
+    imshow("Cluster", data);
+    waitKey(0);
+}
+/*
     Calcul l'histogramme projeté
 */
 void Image::projected_histogram()
 {
     // QUi va contenir l'histogramme projeté
     cv::Mat temp(this->width, this->height, CV_8UC3, cv::Scalar(0, 0, 0));
+    int compteur = 0; // Compyeur des blancs
+
+    for (int y = 0; y < this->height; y++)
+    {
+        compteur = 0;
+
+        for (int x = 0; x < this->width; x++)
+        {
+            Vec3b pixel = this->image.at<Vec3b>(x, y); // On récupère le niveau de gris
+
+            if (pixel.val[0] != 0) // Si le pixel est blanc
+            {
+                temp.at<Vec3b>(x, y).val[0] = 255;
+                compteur++;
+            }
+        }
+    }
+
+    imshow("Projected", temp);
+    waitKey(0);
 }
 
 /*
@@ -29,18 +97,18 @@ void Image::apply_gabor(int kernel_size, double sigma, double theta, double lamd
                                         phi);
 
     cv::filter2D(this->image, temps_image, CV_32F, kernel);
-    //cv::normalize(kernel, kernel, 0, 255, NORM_MINMAX, CV_8UC1);
+    cv::normalize(kernel, kernel, 0, 255, NORM_MINMAX, CV_8UC1);
+    cv::resize(kernel, kernel, cv::Size(), 6, 6);
     imshow("Kernel Gabor", kernel);
-    this->image = temps_image;
-    //cv::normalize(temps_image, this->image, 0, 255, NORM_MINMAX, CV_8U);
+    cv::normalize(temps_image, this->image, 0, 255, NORM_MINMAX, CV_8UC1);
 }
 /*
     Calcul les contours de l'image
 */
-void Image::detect_edge()
+void Image::detect_edge(int dt, int ut)
 {
     Mat temp_image;
-    Canny(this->image, temp_image, 0, 210);
+    Canny(this->image, temp_image, dt, ut);
     this->image = temp_image;
 }
 
