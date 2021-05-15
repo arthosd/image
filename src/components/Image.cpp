@@ -6,13 +6,23 @@ using namespace cv;
 using namespace std;
 using std::vector;
 
-Mat Image::hough_transform_prob()
+/*
+    Applique sobel
+*/
+void Image::sobel(int kernel_size, int scale, int delta)
+{
+    Mat grad_y;
+
+    Sobel(this->image, this->image, CV_8U, 0, 1, kernel_size, scale, delta, BORDER_DEFAULT);
+}
+
+Mat Image::hough_transform_prob(int tresh)
 {
     vector<Vec4i> lines; // Contient les lignes qu'on va récupérer
 
     Mat cdst;
 
-    HoughLinesP(this->image, lines, 1, CV_PI / 180, 50, 50, 10); // Lance la transformé
+    HoughLinesP(this->image, lines, 1, CV_PI / 180, tresh); // Lance la transformé
 
     cvtColor(this->image, cdst, COLOR_GRAY2BGR);
 
@@ -25,11 +35,11 @@ Mat Image::hough_transform_prob()
     return cdst;
 }
 
-Mat Image::hough_transform()
+Mat Image::hough_transform(int tresh)
 {
     vector<Vec2f> lines; //Contient les lignes qu'on va récupérer
     Mat dst;
-    HoughLines(this->image, lines, 1, CV_PI / 180, 150, 0, 0); // Lance la detection des lignes
+    HoughLines(this->image, lines, 1, CV_PI / 180, tresh); // Lance la detection des lignes
 
     cvtColor(this->image, dst, COLOR_GRAY2BGR);
 
@@ -237,6 +247,14 @@ float Image::get_grey(int x, int y)
 Image::Image(string image_path)
 {
     this->image = imread(image_path);         // On lis l'image
+    this->height = this->image.size().height; // La hauteur de l'image
+    this->width = this->image.size().width;   // La largeur de l'image
+    this->image_path = image_path;            // Le chemin vers l'image
+    this->can_project_histogram = false;      //Vérifie s'il y peux projter l'image
+}
+Image::Image(Mat image)
+{
+    this->image = image;                      // On lis l'image
     this->height = this->image.size().height; // La hauteur de l'image
     this->width = this->image.size().width;   // La largeur de l'image
     this->image_path = image_path;            // Le chemin vers l'image

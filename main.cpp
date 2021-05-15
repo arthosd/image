@@ -15,13 +15,15 @@ void pipeline(string PATH)
     Image image = Image(PATH);
 
     image.to_gray();
-    //image.show("TO GREY");
-    image.remove_noise(5);
-    image.detect_edge(20, 120);
-    image.show("detect");
+    image.remove_noise(3);
+    image.detect_edge(15, 250);
+    image.show("Canny - Image");
 
-    //imshow("Hough", image.hough_transform_prob());
-    //waitKey(0);
+    // Detects hough lines
+    Mat hough = image.hough_transform(120);
+
+    imshow("Hough - Transform", hough);
+    waitKey(0);
 }
 
 int apply_pipeline_on_dir(char *PATH)
@@ -60,14 +62,17 @@ int main()
     // Exemple de pipeline
 
     //apply_pipeline_on_dir("/home/elie/Documents/Projet/Fac/Image/assets/");
-    /*Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/eau3.jpeg");
+    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/eau1.jpeg");
     image.to_gray();
-    image.show("TO GREY");
     image.remove_noise(3);
-    image.detect_edge(100, 120);
-    image.show("detect");
-    imshow("Hough", image.hough_transform_prob());
-    waitKey(0);*/
+    image.detect_edge(15, 250);
+    image.show("Canny - Image");
+
+    // Detects hough lines
+    Mat hough = image.hough_transform(120);
+
+    imshow("Hough - Transform", hough);
+    waitKey(0);
 
     return 0;
 }
