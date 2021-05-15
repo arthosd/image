@@ -70,16 +70,6 @@ int main()
     image.show("Canny -image");
 
     image.projected_histogram();
-    /*image.to_gray();
-    image.remove_noise(3);
-    image.detect_edge(15, 250);
-    image.show("Canny - Image");
-
-    // Detects hough lines
-    Mat hough = image.hough_transform(120);
-
-    imshow("Hough - Transform", hough);
-    waitKey(0);*/
 
     return 0;
 }
