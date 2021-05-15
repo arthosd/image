@@ -112,26 +112,27 @@ void Image::cluster(int nb_cluster)
 void Image::projected_histogram()
 {
     // QUi va contenir l'histogramme projeté
-    cv::Mat temp(this->width, this->height, CV_8UC3, cv::Scalar(0, 0, 0));
-    int compteur = 0; // Compyeur des blancs
+    cv::Mat temp(this->height, this->width, CV_8U, cv::Scalar(0, 0, 0));
+    int compteur = 0;
 
-    for (int y = 0; y < this->height; y++)
+    for (int x = 0; x < this->height; x++)
     {
         compteur = 0;
 
-        for (int x = 0; x < this->width; x++)
+        for (int y = 0; y < this->width; y++)
         {
-            Vec3b pixel = this->image.at<Vec3b>(x, y); // On récupère le niveau de gris
+            int i = this->image.at<uchar>(x, y);
 
-            if (pixel.val[0] != 0) // Si le pixel est blanc
+            if (i > 200)
             {
-                temp.at<Vec3b>(x, y).val[0] = 255;
+                //cout << compteur << endl;
+                temp.at<uchar>(x, compteur) = 255;
                 compteur++;
             }
         }
     }
 
-    imshow("Projected", temp);
+    imshow("SHHHH", temp);
     waitKey(0);
 }
 
