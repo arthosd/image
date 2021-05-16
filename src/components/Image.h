@@ -12,7 +12,7 @@ public:
     Image(std::string image_path);                         // Constructeur - 1
     Image(cv::Mat image);                                  // Constructeur - 2
     void set_grey(cv::Mat image, int x, int y, int value); // Set la valeur du pixel  à la valeur données
-    void calculate_projected_histogram();                  // calcul et affiche l'histogramme projeté de l'image
+    cv::Mat calculate_projected_histogram();               // calcul et affiche l'histogramme projeté de l'image
     void to_gray();                                        // Convertit l'image en niveau de gris
     void show(std::string windows_name);                   // Affiche l'image
     void binarize(int min);                                // Effectue un seuillage sur l'image

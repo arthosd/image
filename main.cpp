@@ -10,19 +10,33 @@
 using namespace std;
 using namespace cv;
 
+void hough_pipeline(String PATH)
+{
+    Image image = Image(PATH);
+
+    image.to_gray();
+    image.remove_noise(5);
+    image.detect_edge(20, 150);
+    image.show("Canny -image");
+
+    Mat temp = image.hough_transform(90);
+
+    imshow("Hough", temp);
+    waitKey(0);
+}
+
 void pipeline(string PATH)
 {
     Image image = Image(PATH);
 
     image.to_gray();
-    image.remove_noise(3);
-    image.detect_edge(15, 250);
-    image.show("Canny - Image");
+    image.remove_noise(5);
+    image.detect_edge(20, 150);
+    image.show("Canny -image");
 
-    // Detects hough lines
-    Mat hough = image.hough_transform(120);
+    Mat temp = image.hough_transform(90);
 
-    imshow("Hough - Transform", hough);
+    imshow("Hough", temp);
     waitKey(0);
 }
 
@@ -62,14 +76,19 @@ int main()
     // Exemple de pipeline
 
     //apply_pipeline_on_dir("/home/elie/Documents/Projet/Fac/Image/assets/");
-    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/eau3.jpeg");
+    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/benjy_jus1.jpeg");
 
     image.to_gray();
     image.remove_noise(5);
-    image.detect_edge(20, 150);
-    image.show("Canny -image");
+    image.detect_edge(80, 150);
+    image.show("Canny");
 
-    image.projected_histogram();
+    image.calculate_projected_histogram();
+
+    Mat temp = image.hough_transform(100);
+
+    /*imshow("Hough", temp);
+    waitKey(0);*/
 
     return 0;
 }

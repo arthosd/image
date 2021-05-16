@@ -22,7 +22,7 @@ Mat Image::hough_transform_prob(int tresh)
 
     Mat cdst;
 
-    HoughLinesP(this->image, lines, 1, CV_PI / 180, tresh); // Lance la transformé
+    HoughLinesP(this->image, lines, 1, CV_PI / 2, tresh); // Lance la transformé
 
     cvtColor(this->image, cdst, COLOR_GRAY2BGR);
 
@@ -39,21 +39,26 @@ Mat Image::hough_transform(int tresh)
 {
     vector<Vec2f> lines; //Contient les lignes qu'on va récupérer
     Mat dst;
-    HoughLines(this->image, lines, 1, CV_PI / 180, tresh); // Lance la detection des lignes
+    HoughLines(this->image, lines, 2, CV_PI / 2, tresh); // Lance la detection des lignes
 
     cvtColor(this->image, dst, COLOR_GRAY2BGR);
 
     for (size_t i = 0; i < lines.size(); i++)
     {
-        float rho = lines[i][0], theta = lines[i][1];
-        Point pt1, pt2;
-        double a = cos(theta), b = sin(theta);
-        double x0 = a * rho, y0 = b * rho;
-        pt1.x = cvRound(x0 + 1000 * (-b));
-        pt1.y = cvRound(y0 + 1000 * (a));
-        pt2.x = cvRound(x0 - 1000 * (-b));
-        pt2.y = cvRound(y0 - 1000 * (a));
-        line(dst, pt1, pt2, Scalar(0, 0, 255), 3, LINE_AA);
+        if (lines[i][1] != 0)
+        {
+            float rho = lines[i][0], theta = lines[i][1];
+            cout << lines[i][1] << endl;
+            Point pt1, pt2;
+            double a = cos(theta), b = sin(theta);
+            double x0 = a * rho, y0 = b * rho;
+            pt1.x = cvRound(x0 + 1000 * (-b));
+            pt1.y = cvRound(y0 + 1000 * (a));
+            pt2.x = cvRound(x0 - 1000 * (-b));
+            pt2.y = cvRound(y0 - 1000 * (a));
+
+            line(dst, pt1, pt2, Scalar(0, 0, 255), 3, LINE_AA);
+        }
     }
 
     return dst;
@@ -109,30 +114,43 @@ void Image::cluster(int nb_cluster)
 /*
     Calcul l'histogramme projeté
 */
-void Image::calculate_projected_histogram()
+Mat Image::calculate_projected_histogram()
 {
-    // QUi va contenir l'histogramme projeté
-    cv::Mat temp(this->height, this->width, CV_8U, cv::Scalar(0, 0, 0));
-    int compteur = 0;
 
-    for (int x = 0; x < this->height; x++)
+    // Vector de données
+    std::vector<float> histRows(this->image.rows, 0.0);
+
+    int max = 0;
+
+    for (int i = 0; i < this->image.rows; i++)
     {
-        compteur = 0;
-
-        for (int y = 0; y < this->width; y++)
+        for (int j = 0; j < this->image.cols; j++)
         {
-            int i = this->image.at<uchar>(x, y);
-
-            if (i > 200)
+            if (this->image.at<uchar>(i, j) != 0)
             {
-                //cout << compteur << endl;
-                temp.at<uchar>(x, compteur) = 255;
-                compteur++;
+                histRows.at(i)++;
+            }
+        }
+        if (histRows.at(i) > max)
+        {
+            max = histRows.at(i); //Valeur maximale de l'histogramme de projection
+        }
+    }
+
+    Mat imgHist = Mat::zeros(this->image.rows, this->image.cols, CV_8UC1);
+
+    for (int i = 0; i < this->image.rows; i++)
+    {
+        if (((float)histRows.at(i) / (float)max) >= 0.4)
+        {
+            for (int j = 0; j < (int)((histRows.at(i) / max) * imgHist.cols); j++)
+            {
+                imgHist.at<uchar>(i, j) = 255;
             }
         }
     }
 
-    temp.copyTo(this->projected_histogram);
+    return imgHist;
 }
 
 /*
