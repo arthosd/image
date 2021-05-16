@@ -109,7 +109,7 @@ void Image::cluster(int nb_cluster)
 /*
     Calcul l'histogramme projeté
 */
-void Image::projected_histogram()
+void Image::calculate_projected_histogram()
 {
     // QUi va contenir l'histogramme projeté
     cv::Mat temp(this->height, this->width, CV_8U, cv::Scalar(0, 0, 0));
@@ -132,8 +132,7 @@ void Image::projected_histogram()
         }
     }
 
-    imshow("SHHHH", temp);
-    waitKey(0);
+    temp.copyTo(this->projected_histogram);
 }
 
 /*
@@ -243,6 +242,20 @@ float Image::get_grey(int x, int y)
 }
 
 /*
+    Retourne l'histogramme projeté de l'image
+*/
+Mat Image::get_projected_histogram()
+{
+    return this->projected_histogram;
+}
+
+void Image::show_projected_histogram()
+{
+    imshow("Histograme projeté", this->histogram_projected);
+    waitKey(0);
+}
+
+/*
     Constructeur de l'image
 */
 Image::Image(string image_path)
@@ -251,7 +264,6 @@ Image::Image(string image_path)
     this->height = this->image.size().height; // La hauteur de l'image
     this->width = this->image.size().width;   // La largeur de l'image
     this->image_path = image_path;            // Le chemin vers l'image
-    this->can_project_histogram = false;      //Vérifie s'il y peux projter l'image
 }
 Image::Image(Mat image)
 {
@@ -259,5 +271,4 @@ Image::Image(Mat image)
     this->height = this->image.size().height; // La hauteur de l'image
     this->width = this->image.size().width;   // La largeur de l'image
     this->image_path = image_path;            // Le chemin vers l'image
-    this->can_project_histogram = false;      //Vérifie s'il y peux projter l'image
 }

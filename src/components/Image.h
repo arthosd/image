@@ -12,7 +12,7 @@ public:
     Image(std::string image_path);                         // Constructeur - 1
     Image(cv::Mat image);                                  // Constructeur - 2
     void set_grey(cv::Mat image, int x, int y, int value); // Set la valeur du pixel  à la valeur données
-    void projected_histogram();                            // calcul et affiche l'histogramme projeté de l'image
+    void calculate_projected_histogram();                  // calcul et affiche l'histogramme projeté de l'image
     void to_gray();                                        // Convertit l'image en niveau de gris
     void show(std::string windows_name);                   // Affiche l'image
     void binarize(int min);                                // Effectue un seuillage sur l'image
@@ -24,6 +24,8 @@ public:
     void sobel(int kernel_size, int scale, int delta);     // Filter de sobel
     cv::Mat hough_transform(int tresh);                    // Calcul la transformé de hough
     cv::Mat hough_transform_prob(int tresh);               // Calcul la transformé de hough probabiliste
+    cv::Mat get_projected_histogram();                     // Renvoie l'histogramme projeté de l'image
+    void show_projected_histogram();                       // Affiche l'histogramme projeté de l'image
     void apply_gabor(int kernel_size,                      // On applique gabor sur l'image
                      double sigma,
                      double theta,
@@ -34,10 +36,10 @@ public:
 private:
     // Attibuts
     cv::Mat image;               // L'image
+    cv::Mat projected_histogram; // Histogramme projeté de l'image
     std::string image_path;      // Le chemin vers l'image
     int width, height;           // Dimensions de l'image
     cv::Mat histogram_projected; // L'histogramme projeté de l'image
-    bool can_project_histogram;  //Vérifie que l'image est bien éligible à la projection
 
     // Fonctions
     float get_grey(int x, int y); //Rècupère le niveau de gris d'un pixel à la position X et Y
