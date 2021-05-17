@@ -12,7 +12,7 @@ public:
     Image(std::string image_path);                         // Constructeur - 1
     Image(cv::Mat image);                                  // Constructeur - 2
     void set_grey(cv::Mat image, int x, int y, int value); // Set la valeur du pixel  à la valeur données
-    cv::Mat calculate_projected_histogram();               // calcul et affiche l'histogramme projeté de l'image
+    cv::Mat calculate_projected_histogram_cropped();       // calcul et affiche l'histogramme projeté de l'image
     void to_gray();                                        // Convertit l'image en niveau de gris
     void show(std::string windows_name);                   // Affiche l'image
     void binarize(int min);                                // Effectue un seuillage sur l'image
@@ -20,7 +20,7 @@ public:
     void remove_noise(int ksize);                          // Effectue un filtre médian pour supprimer le bruit
     void equalize();                                       // Egalise l'histogramme de l'image
     void detect_edge(int dt, int ut);                      // Trouve les contours de l'image
-    void cluster(int nb_cluster);                          // Cluster l'image en utilisant K-Mean
+    void cluster(int nb_cluster, int colored);             // Cluster l'image en utilisant K-Mean
     void sobel(int kernel_size, int scale, int delta);     // Filter de sobel
     cv::Mat hough_transform(int tresh);                    // Calcul la transformé de hough
     cv::Mat hough_transform_prob(int tresh);               // Calcul la transformé de hough probabiliste

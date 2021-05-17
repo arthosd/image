@@ -66,55 +66,48 @@ Mat Image::hough_transform(int tresh)
 /*
     Clusterise l'image en utilisant K-mean
 */
-void Image::cluster(int nb_cluster)
+void Image::cluster(int nb_cluster, int is_colored)
 {
-    Mat data;
-    Mat pixel(this->height, this->width, CV_32FC3);
-    this->image.convertTo(data, CV_32F); // Convertit l'image en représentation flottante
+    // Tablea pour KMEAN
+    Mat label, centers;
 
-    /*
-        Data -> contient l'image initial en format float
-        pixel -> Image vide avec les meme dimension que l'image initial
-    */
-
-    // On itère dans l'image flottante initial
-    for (int x = 0; x < this->height; x++)
+    // Image en niveau de gris
+    if (is_colored == 0)
     {
-        for (int y = 0; y < this->width; y++)
+        // Les données à faire passer au KMEAN
+        Mat data(this->height, this->width, CV_32FC(3));
+
+        for (int x = 0; x < this->height; x++)
         {
-            pixel.at<Vec<float, 5>>(x, y)[0] = data.at<Vec3f>(x, y)[0] / 255;
-            pixel.at<Vec<float, 5>>(x, y)[1] = data.at<Vec3f>(x, y)[1] / 255;
-            pixel.at<Vec<float, 5>>(x, y)[2] = data.at<Vec3f>(x, y)[2] / 255;
+            for (int y = 0; y < this->width; y++)
+            {
+                // Intenisté de niveau de gris
+                data.at<Vec<float, 3>>(x, y)[0] = this->image.at<float>(x, y) / 255;
 
-            pixel.at<Vec3f>(x, y)[3] = ((float)x) / this->height;
-            pixel.at<Vec3f>(x, y)[4] = ((float)y) / this->width;
+                // Coordonnées du pixel
+                data.at<Vec<float, 3>>(x, y)[1] = ((float)x) / this->height;
+                data.at<Vec<float, 3>>(x, y)[2] = ((float)y) / this->width;
+
+                cout << "c'est pas ciao" << endl;
+            }
         }
+
+        cout << "c'est ciao" << endl;
+
+        data = data.reshape(1, data.total());
+
+        // On clusterise
+        kmeans(data, nb_cluster, label, TermCriteria(TermCriteria::MAX_ITER | TermCriteria::EPS, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
     }
-
-    pixel = pixel.reshape(1, pixel.total());
-
-    Mat labels, centers;
-
-    kmeans(pixel, nb_cluster, labels, TermCriteria(TermCriteria::MAX_ITER | TermCriteria::EPS, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
-
-    for (int i = 0; i < data.total(); ++i)
+    // Image en couleur
+    else
     {
-        //cout << labels.at<int>(i) << "  " << centers.at<float>(labels.at<int>(i)) << endl;
-        data.at<Vec3f>(i)[0] = centers.at<float>(labels.at<int>(i), 0) * 255;
-        data.at<Vec3f>(i)[1] = centers.at<float>(labels.at<int>(i), 0) * 255;
-        data.at<Vec3f>(i)[2] = centers.at<float>(labels.at<int>(i), 0) * 255;
     }
-
-    data = data.reshape(this->image.channels(), this->image.rows);
-    data.convertTo(data, CV_8U);
-
-    imshow("Cluster", data);
-    waitKey(0);
 }
 /*
     Calcul l'histogramme projeté
 */
-Mat Image::calculate_projected_histogram()
+Mat Image::calculate_projected_histogram_cropped()
 {
 
     // Vector de données

@@ -31,12 +31,21 @@ void pipeline(string PATH)
 
     image.to_gray();
     image.remove_noise(5);
+
+    // On detect les contour de l'image
     image.detect_edge(20, 150);
-    image.show("Canny -image");
+    image.show("Canny");
 
-    Mat temp = image.hough_transform(90);
+    // On cacule l'histogramme projeté
+    Mat proj = image.calculate_projected_histogram_cropped();
 
-    imshow("Hough", temp);
+    imshow("Projecterd - Image", proj);
+    waitKey(0);
+
+    // Calculer la transformé de hough pour des valeur de 90 degrées
+    Mat hough = image.hough_transform(100);
+
+    imshow("Hough - Transform", hough);
     waitKey(0);
 }
 
@@ -75,19 +84,27 @@ int main()
 
     // Exemple de pipeline
 
-    //apply_pipeline_on_dir("/home/elie/Documents/Projet/Fac/Image/assets/");
-    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/benjy_jus1.jpeg");
+    apply_pipeline_on_dir("/home/elie/Documents/Projet/Fac/Image/assets/");
+    /*Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/benjy_jus3.jpeg");
 
+    // Préprocess l'image
     image.to_gray();
     image.remove_noise(5);
-    image.detect_edge(80, 150);
+
+    // On detect les contour de l'image
+    image.detect_edge(20, 150);
     image.show("Canny");
 
-    image.calculate_projected_histogram();
+    // On cacule l'histogramme projeté
+    Mat proj = image.calculate_projected_histogram_cropped();
 
-    Mat temp = image.hough_transform(100);
+    imshow("Projecterd - Image", proj);
+    waitKey(0);
 
-    /*imshow("Hough", temp);
+    // Calculer la transformé de hough pour des valeur de 90 degrées
+    Mat hough = image.hough_transform(100);
+
+    imshow("Hough - Transform", hough);
     waitKey(0);*/
 
     return 0;
