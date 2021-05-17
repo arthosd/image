@@ -145,7 +145,37 @@ Mat Image::calculate_projected_histogram_cropped()
 
     return imgHist;
 }
+/*
 
+*/
+Mat Image::calculate_projected_histogram()
+{
+    Mat proj(this->height, this->width, CV_8UC1);
+
+    int compteur = 0;
+
+    for (int x = 0; x < this->height; x++)
+    {
+        compteur = 0;
+
+        for (int y = 0; y < this->width; y++)
+        {
+            int i = this->image.at<uchar>(x, y);
+
+            if (i > 200)
+            {
+                cout << (int)this->image.at<uchar>(x, y) << endl;
+                proj.at<uchar>(x, compteur) = 255;
+                compteur++;
+            }
+        }
+    }
+
+    imshow("SHHHH", proj);
+    waitKey(0);
+
+    return proj;
+}
 /*
     Applique une transformée de gabor avec kernel_size comme taille de filtre
 */

@@ -84,15 +84,14 @@ int main()
 
     // Exemple de pipeline
 
-    apply_pipeline_on_dir("/home/elie/Documents/Projet/Fac/Image/assets/");
-    /*Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/benjy_jus3.jpeg");
+    //apply_pipeline_on_dir("/home/elie/Documents/Projet/Fac/Image/assets/");
+    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/benjy_jus3.jpeg");
 
-    // Préprocess l'image
     image.to_gray();
     image.remove_noise(5);
 
     // On detect les contour de l'image
-    image.detect_edge(20, 150);
+    image.detect_edge(20, 200);
     image.show("Canny");
 
     // On cacule l'histogramme projeté
@@ -102,10 +101,10 @@ int main()
     waitKey(0);
 
     // Calculer la transformé de hough pour des valeur de 90 degrées
-    Mat hough = image.hough_transform(100);
+    Mat hough = image.hough_transform(150);
 
     imshow("Hough - Transform", hough);
-    waitKey(0);*/
+    waitKey(0);
 
     return 0;
 }
