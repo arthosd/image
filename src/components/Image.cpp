@@ -16,7 +16,7 @@ void Image::sobel(int kernel_size, int scale, int delta)
     Sobel(this->image, this->image, CV_8U, 0, 1, kernel_size, scale, delta, BORDER_DEFAULT);
 }
 
-Mat Image::hough_transform_prob(int tresh)
+Mat Image::hough_transform_prob(int tresh, int rho)
 {
     vector<Vec4i> lines; // Contient les lignes qu'on va récupérer
 
@@ -37,11 +37,15 @@ Mat Image::hough_transform_prob(int tresh)
 
 Mat Image::hough_transform(int tresh)
 {
+    // Va contenir les traits de l'image
+    Mat image = Mat::zeros(this->height, this->width, CV_8UC1);
     vector<Vec2f> lines; //Contient les lignes qu'on va récupérer
     Mat dst;
+
     HoughLines(this->image, lines, 2, CV_PI / 2, tresh); // Lance la detection des lignes
 
-    cvtColor(this->image, dst, COLOR_GRAY2BGR);
+    // cvtColor(this->image, dst, COLOR_GRAY2BGR);
+    cvtColor(image, dst, COLOR_GRAY2BGR);
 
     for (size_t i = 0; i < lines.size(); i++)
     {
@@ -66,9 +70,91 @@ Mat Image::hough_transform(int tresh)
 /*
     Clusterise l'image en utilisant K-mean
 */
-void Image::cluster(int nb_cluster, int is_colored)
+void Image::cluster(int nb_cluster, vector<float> histRows, int max_value)
 {
-    // Tablea pour KMEAN
+
+    // Labels et centroids
+    Mat labels, centers;
+
+    // Data à clusteriser
+    Mat data = Mat::zeros(this->height, 1, CV_32FC2);
+
+    for (int i = 0; i < histRows.size(); i++)
+    {
+        if (((float)histRows.at(i) / (float)max_value) >= 0.38)
+        {
+            data.at<float>(i, 0) = histRows.at(i) / (float)max_value;
+        }
+        // A retirer psk c'est déjà une matrice rempli de Zéros ----------------------------
+        else
+        {
+            data.at<float>(i, 0) = 0;
+        }
+
+        data.at<float>(i, 1) = (float)i / (float)(histRows.size() - 1);
+    }
+
+    int firstRow = 0;
+    int lastRow = (int)histRows.size() - 1;
+
+    for (int i = 0; data.at<float>(i, 0) == 0; i++)
+    {
+        firstRow++;
+    }
+    for (int i = histRows.size() - 1; data.at<float>(i, 0) == 0; i--)
+    {
+        lastRow--;
+    }
+
+    std::vector<float> histRowsCropped((lastRow - firstRow) + 1, 0.0);
+
+    for (int i = firstRow; i <= lastRow; i++)
+    {
+        histRowsCropped.at(i - firstRow) = histRows.at(i);
+    }
+
+    Mat data2 = Mat::zeros(histRowsCropped.size(), 1, CV_32FC2);
+
+    for (int i = 0; i < histRowsCropped.size(); i++)
+    {
+        if (((float)histRowsCropped.at(i) / (float)max_value) >= 0.4)
+        {
+            data2.at<float>(i, 0) = histRowsCropped.at(i) / (float)max_value;
+        }
+        else
+        {
+            data2.at<float>(i, 0) = 0;
+        }
+        data2.at<float>(i, 1) = (float)i / (float)(histRowsCropped.size() - 1);
+    }
+
+    kmeans(data2, 4, labels, TermCriteria(TermCriteria::MAX_ITER | TermCriteria::EPS, 3, 1.0), 10, KMEANS_PP_CENTERS, centers);
+
+    std::vector<int> sortedCenterRows(4, 0);
+
+    for (int i = 0; i < 4; i++)
+    {
+        sortedCenterRows[i] = ((int)(centers.at<float>(i, 1) * histRowsCropped.size())) + firstRow;
+    }
+
+    std::sort(sortedCenterRows.begin(), sortedCenterRows.begin() + 4);
+
+    // Va contenir le résultat
+    Mat Result = Mat::zeros(this->height, this->width, CV_8UC1);
+
+    for (int j = 0; j < Result.cols; j++)
+    {
+        Result.at<Vec3b>(sortedCenterRows.at(1), j) = Vec3b(255, 0, 0);
+    }
+    for (int j = 0; j < Result.cols; j++)
+    {
+        Result.at<Vec3b>(sortedCenterRows.at(2), j) = Vec3b(0, 0, 255);
+    }
+
+    imshow("Image", Result);
+    waitKey(0);
+
+    /* // Tablea pour KMEAN
     Mat label, centers;
 
     // Image en niveau de gris
@@ -102,7 +188,7 @@ void Image::cluster(int nb_cluster, int is_colored)
     // Image en couleur
     else
     {
-    }
+    }*/
 }
 /*
     Calcul l'histogramme projeté
@@ -124,6 +210,7 @@ Mat Image::calculate_projected_histogram_cropped()
                 histRows.at(i)++;
             }
         }
+
         if (histRows.at(i) > max)
         {
             max = histRows.at(i); //Valeur maximale de l'histogramme de projection
@@ -145,14 +232,13 @@ Mat Image::calculate_projected_histogram_cropped()
 
     return imgHist;
 }
-/*
 
-*/
 Mat Image::calculate_projected_histogram()
 {
-    Mat proj(this->height, this->width, CV_8UC1);
+    Mat proj = Mat::zeros(this->height, this->width, CV_8UC1);
 
     int compteur = 0;
+    cout << compteur << endl;
 
     for (int x = 0; x < this->height; x++)
     {
@@ -160,7 +246,7 @@ Mat Image::calculate_projected_histogram()
 
         for (int y = 0; y < this->width; y++)
         {
-            int i = this->image.at<uchar>(x, y);
+            int i = (int)this->image.at<uchar>(x, y);
 
             if (i > 200)
             {
@@ -171,10 +257,61 @@ Mat Image::calculate_projected_histogram()
         }
     }
 
-    imshow("SHHHH", proj);
-    waitKey(0);
-
     return proj;
+}
+vector<int> Image::treat_histogram(Mat proj)
+{
+    std::vector<int> total(proj.rows, 0);
+    std::vector<int> lignes(3, 0);
+
+    for (int x = 0; x < proj.rows; x++)
+    {
+        for (int y = 0; y < proj.cols; y++)
+        {
+            if (proj.at<uchar>(x, y) > 200)
+                total[x]++;
+        }
+    }
+
+    int pas = total.size() / 3; // On divise par trois la taille de l'image projeté
+
+    int debut = 0;         // Le début de la zone
+    int fin = debut + pas; // La fin de la zone
+
+    for (int compteur = 0; compteur < pas; compteur++)
+    {
+        for (int i = debut; i < fin; i++)
+        {
+            if (total[i] != 0)
+            {
+                int temp = total[i];
+
+                if (compteur == 0)
+                {
+                    if (temp > lignes[compteur])
+                        lignes[compteur] = temp;
+                }
+                else
+                {
+                    // On cherche le plus petit
+                    if (lignes[compteur] == 0)
+                    {
+                        lignes[compteur] = temp;
+                    }
+                    else
+                    {
+                        if (temp < lignes[compteur])
+                            lignes[compteur] = temp;
+                    }
+                }
+            }
+        }
+
+        debut = fin;
+        fin = debut + pas;
+    }
+
+    return lignes;
 }
 /*
     Applique une transformée de gabor avec kernel_size comme taille de filtre
@@ -204,7 +341,6 @@ void Image::detect_edge(int dt, int ut)
     Canny(this->image, temp_image, dt, ut);
     this->image = temp_image;
 }
-
 /*
     Egalise l'histogramme de l'image
 */
@@ -214,7 +350,6 @@ void Image::equalize()
     equalizeHist(this->image, temp_image);
     this->image = temp_image;
 }
-
 /*
     Effectue un filtre median en utilisant une matrice de taille ksize
 */
@@ -224,7 +359,6 @@ void Image::remove_noise(int ksize)
     GaussianBlur(this->image, temp_image, Size(ksize, ksize), 0);
     this->image = temp_image;
 }
-
 /*
     Applique le seuillage d'otsu sur l'image
 */
@@ -234,7 +368,6 @@ void Image::otsu()
     threshold(this->image, temp_image, 0, 255, THRESH_OTSU);
     this->image = temp_image;
 }
-
 /*
     Seuille l'image en fonction du min données en paramètre
 */
@@ -244,7 +377,6 @@ void Image::binarize(int min)
     threshold(this->image, temp_image, min, 255, THRESH_BINARY); // On seuille l'image
     this->image = temp_image;
 }
-
 /*
     Convertit l'image en niveau de gris
 */
@@ -254,7 +386,6 @@ void Image::to_gray()
     cvtColor(this->image, temp_image, COLOR_BGR2GRAY);
     this->image = temp_image;
 }
-
 /*
     Affiche l'image dans une fenetre
 */
@@ -263,7 +394,6 @@ void Image::show(string windows_name)
     imshow(windows_name, this->image);
     waitKey(0);
 }
-
 /*
     Set la valeur d'un pixel
 */
@@ -271,7 +401,6 @@ void Image::set_grey(cv::Mat image, int x, int y, int value)
 {
     image.at<Vec3b>(x, y) = value; // Set la valeur de l'image
 }
-
 /*
     Récupère la valeur du pixel gris à la position X et Y
 */
@@ -281,7 +410,6 @@ float Image::get_grey(int x, int y)
 
     return intensity.val[0];
 }
-
 /*
     Retourne l'histogramme projeté de l'image
 */
@@ -289,7 +417,6 @@ Mat Image::get_projected_histogram()
 {
     return this->projected_histogram;
 }
-
 void Image::show_projected_histogram()
 {
     imshow("Histograme projeté", this->histogram_projected);

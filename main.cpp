@@ -1,4 +1,5 @@
 #define _USE_MATH_DEFINES
+
 #include <iostream>
 #include <stdlib.h>
 #include <opencv2/opencv.hpp>
@@ -6,6 +7,7 @@
 #include <cmath>
 #include <string.h>
 #include <dirent.h>
+#include <vector>
 
 using namespace std;
 using namespace cv;
@@ -16,13 +18,22 @@ void hough_pipeline(String PATH)
 
     image.to_gray();
     image.remove_noise(5);
+
+    // On detect les contour de l'image
     image.detect_edge(20, 150);
-    image.show("Canny -image");
+    image.show("Canny");
 
-    Mat temp = image.hough_transform(90);
+    // On cacule l'histogramme projeté
+    //image.calculate_projected_histogram();
 
-    imshow("Hough", temp);
-    waitKey(0);
+    //imshow("Projeted - Image", proj);
+    //waitKey(0);
+
+    // Calculer la transformé de hough pour des valeurs de 90 degrées
+    //Mat hough = image.hough_transform(100);
+
+    //imshow("Hough - Transform", hough);
+    //waitKey(0);
 }
 
 void pipeline(string PATH)
@@ -84,27 +95,22 @@ int main()
 
     // Exemple de pipeline
 
-    //apply_pipeline_on_dir("/home/elie/Documents/Projet/Fac/Image/assets/");
-    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/benjy_jus3.jpeg");
+    // apply_pipeline_on_dir("/home/elie/Documents/Projet/Fac/Image/assets/");
+    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/eau3.jpeg");
 
     image.to_gray();
     image.remove_noise(5);
+    image.detect_edge(20, 150);
+    image.show("Canny - Image");
 
-    // On detect les contour de l'image
-    image.detect_edge(20, 200);
-    image.show("Canny");
-
-    // On cacule l'histogramme projeté
+    // Image des lignes de niveaux
     Mat proj = image.calculate_projected_histogram_cropped();
+    vector<int> lignes = image.treat_histogram(proj);
 
-    imshow("Projecterd - Image", proj);
-    waitKey(0);
-
-    // Calculer la transformé de hough pour des valeur de 90 degrées
-    Mat hough = image.hough_transform(150);
-
-    imshow("Hough - Transform", hough);
-    waitKey(0);
+    for (int i = 0; i < lignes.size(); i++)
+    {
+        cout << lignes[i] << endl;
+    }
 
     return 0;
 }
