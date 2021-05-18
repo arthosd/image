@@ -96,7 +96,7 @@ int main()
     // Exemple de pipeline
 
     // apply_pipeline_on_dir("/home/elie/Documents/Projet/Fac/Image/assets/");
-    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/eau3.jpeg");
+    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/benjy_eau.jpeg");
 
     image.to_gray();
     image.remove_noise(5);

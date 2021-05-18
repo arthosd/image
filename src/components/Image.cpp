@@ -261,6 +261,7 @@ Mat Image::calculate_projected_histogram()
 }
 vector<int> Image::treat_histogram(Mat proj)
 {
+
     std::vector<int> total(proj.rows, 0);
     std::vector<int> lignes(3, 0);
 
@@ -289,19 +290,19 @@ vector<int> Image::treat_histogram(Mat proj)
                 if (compteur == 0)
                 {
                     if (temp > lignes[compteur])
-                        lignes[compteur] = temp;
+                        lignes[compteur] = i;
                 }
                 else
                 {
                     // On cherche le plus petit
                     if (lignes[compteur] == 0)
                     {
-                        lignes[compteur] = temp;
+                        lignes[compteur] = i;
                     }
                     else
                     {
                         if (temp < lignes[compteur])
-                            lignes[compteur] = temp;
+                            lignes[compteur] = i;
                     }
                 }
             }
