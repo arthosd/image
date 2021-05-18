@@ -6,136 +6,15 @@ using namespace cv;
 using namespace std;
 using std::vector;
 
-int Image::pipeline(Mat proj)
-{
-    int threshold = -1;
-
-    // Contenir le total
-    std::vector<int> total(proj.rows, 0);
-
-    // Contenir les lignes
-    std::vector<int> lignes(3, 0);
-
-    int choix_ligne = -1;
-
-    // On compte les blancs et on remplie la matrice
-    for (int x = 0; x < proj.rows; x++)
-    {
-        for (int y = 0; y < proj.cols; y++)
-        {
-            if (proj.at<uchar>(x, y) > 200)
-                total[x]++;
-        }
-    }
-
-    // On recherche les trois lignes de niveaux
-
-    int pas = total.size() / 3; // On divise par trois la taille de l'image projeté
-
-    int debut = 0;         // Le début de la zone
-    int fin = debut + pas; // La fin de la zone
-
-    for (int compteur = 0; compteur < pas; compteur++)
-    {
-        for (int i = debut; i < fin; i++)
-        {
-            if (total[i] != 0)
-            {
-                int temp = total[i];
-
-                if (compteur == 0)
-                {
-                    if (temp > lignes[compteur])
-                        lignes[compteur] = i;
-                }
-                else
-                {
-                    // On cherche le plus petit
-                    if (lignes[compteur] == 0)
-                    {
-                        lignes[compteur] = i;
-                    }
-                    else
-                    {
-                        if (temp < lignes[compteur])
-                            lignes[compteur] = i;
-                    }
-                }
-            }
-        }
-
-        debut = fin;
-        fin = debut + pas;
-    }
-
-    if (lignes[1] != 0)
-        choix_ligne = lignes[1];
-
-    else
-        choix_ligne = lignes[0];
-
-    // Le pas permettant de retrouve la lignes selectionné à l'aide de hough
-    int pas_search = (10 * choix_ligne) / 100;
-
-    // Récupère les lines de la transformé de hough
-
-    try
-    {
-
-        std::cout << "bite" << endl;
-
-        std::vector<Vec2f> lines; //Contient les lignes qu'on va récupérer
-
-        HoughLines(this->image, lines, 2, CV_PI / 2, 120); // Lance la detection des lignes
-
-        std::cout << "On doit aller jusqua la : " << lines.size() << endl;
-
-        for (size_t i = 0; i < lines.size(); i++)
-        {
-            if (lines[i][1] != 0)
-            {
-                float rho = lines[i][0], theta = lines[i][1];
-                Point pt1, pt2;
-                double a = cos(theta), b = sin(theta);
-                double x0 = a * rho, y0 = b * rho;
-                pt1.x = cvRound(x0 + 1000 * (-b));
-                pt1.y = cvRound(y0 + 1000 * (a));
-                pt2.x = cvRound(x0 - 1000 * (-b));
-                pt2.y = cvRound(y0 - 1000 * (a));
-
-                //line(dst, pt1, pt2, Scalar(0, 0, 255), 3, LINE_AA);
-
-                // On vérifie qu'il y a une ligne qui correspond à la ligne donnée en argument
-
-                for (int i = pt1.y - pas_search; i < pt1.y + pas_search; i++)
-                {
-
-                    if (i == choix_ligne)
-                    {
-                        return pt1.y;
-                    }
-                }
-            }
-        }
-    }
-    catch (std::exception &e)
-    {
-        std::cout << e.what() << endl;
-    }
-
-    std::cout << "on est la" << endl;
-
-    return threshold;
-}
 /*
-    Applique sobel
-*/
-void Image::sobel(int kernel_size, int scale, int delta)
-{
-    Mat grad_y;
+    Applique la transformé dee hough afin de detecté les lignes horizontales.
+    On vérifie si la ligne de niveaux correspond à une des lignes données par Hough.
 
-    Sobel(this->image, this->image, CV_8U, 0, 1, kernel_size, scale, delta, BORDER_DEFAULT);
-}
+    int tresh -> Le seuil minimale de l'accumulateur d'une droite
+    int number_to_check -> la coordonées Y de la ligne de niveau à vérifier
+
+    Retourne l'image avec la ligne de niveau.
+*/
 int Image::hough_transform(int tresh, int number_to_check)
 {
     int ligne = number_to_check;
@@ -144,8 +23,6 @@ int Image::hough_transform(int tresh, int number_to_check)
     vector<Vec2f> lines; //Contient les lignes qu'on va récupérer
 
     HoughLines(this->image, lines, 2, CV_PI / 2, tresh); // Lance la detection des lignes
-
-    cout << lines.size() << endl;
 
     for (size_t i = 0; i < lines.size(); i++)
     {
@@ -179,6 +56,8 @@ int Image::hough_transform(int tresh, int number_to_check)
 */
 void Image::cluster(int nb_cluster, vector<float> histRows, int max_value)
 {
+
+    /////////// CETTE FONCTION N'EST PAS FONCTIONNELLE.
 
     // Labels et centroids
     Mat labels, centers;
@@ -260,51 +139,17 @@ void Image::cluster(int nb_cluster, vector<float> histRows, int max_value)
 
     imshow("Image", Result);
     waitKey(0);
-
-    /* // Tablea pour KMEAN
-    Mat label, centers;
-
-    // Image en niveau de gris
-    if (is_colored == 0)
-    {
-        // Les données à faire passer au KMEAN
-        Mat data(this->height, this->width, CV_32FC(3));
-
-        for (int x = 0; x < this->height; x++)
-        {
-            for (int y = 0; y < this->width; y++)
-            {
-                // Intenisté de niveau de gris
-                data.at<Vec<float, 3>>(x, y)[0] = this->image.at<float>(x, y) / 255;
-
-                // Coordonnées du pixel
-                data.at<Vec<float, 3>>(x, y)[1] = ((float)x) / this->height;
-                data.at<Vec<float, 3>>(x, y)[2] = ((float)y) / this->width;
-
-                cout << "c'est pas ciao" << endl;
-            }
-        }
-
-        cout << "c'est ciao" << endl;
-
-        data = data.reshape(1, data.total());
-
-        // On clusterise
-        kmeans(data, nb_cluster, label, TermCriteria(TermCriteria::MAX_ITER | TermCriteria::EPS, 10, 1.0), 3, KMEANS_PP_CENTERS, centers);
-    }
-    // Image en couleur
-    else
-    {
-    }*/
 }
 /*
-    Calcul l'histogramme projeté
+    Calcul les lignes de niveaux d'une image.
+
+    Retourne l'histogramme représantant les lignes de niveaux.
 */
-Mat Image::calculate_projected_histogram_cropped()
+Mat Image::line_level()
 {
 
     // Vector de données
-    std::vector<float> histRows(this->image.rows, 0.0);
+    std::vector<float> rows(this->image.rows, 0.0);
 
     int max = 0;
 
@@ -314,38 +159,39 @@ Mat Image::calculate_projected_histogram_cropped()
         {
             if (this->image.at<uchar>(i, j) != 0)
             {
-                histRows.at(i)++;
+                rows.at(i)++;
             }
         }
 
-        if (histRows.at(i) > max)
+        if (rows.at(i) > max)
         {
-            max = histRows.at(i); //Valeur maximale de l'histogramme de projection
+            max = rows.at(i); //Valeur maximale de l'histogramme de projection
         }
     }
 
-    Mat imgHist = Mat::zeros(this->image.rows, this->image.cols, CV_8UC1);
+    Mat hist = Mat::zeros(this->image.rows, this->image.cols, CV_8UC1);
 
     for (int i = 0; i < this->image.rows; i++)
     {
-        if (((float)histRows.at(i) / (float)max) >= 0.4)
+        if (((float)rows.at(i) / (float)max) >= 0.4)
         {
-            for (int j = 0; j < (int)((histRows.at(i) / max) * imgHist.cols); j++)
+            for (int j = 0; j < (int)((rows.at(i) / max) * hist.cols); j++)
             {
-                imgHist.at<uchar>(i, j) = 255;
+                hist.at<uchar>(i, j) = 255;
             }
         }
     }
 
-    return imgHist;
+    return hist;
 }
-
+/*
+    Calcul l'histogramme projeté de l'image
+*/
 Mat Image::calculate_projected_histogram()
 {
     Mat proj = Mat::zeros(this->height, this->width, CV_8UC1);
 
     int compteur = 0;
-    cout << compteur << endl;
 
     for (int x = 0; x < this->height; x++)
     {
@@ -357,7 +203,6 @@ Mat Image::calculate_projected_histogram()
 
             if (i > 200)
             {
-                cout << (int)this->image.at<uchar>(x, y) << endl;
                 proj.at<uchar>(x, compteur) = 255;
                 compteur++;
             }
@@ -366,6 +211,13 @@ Mat Image::calculate_projected_histogram()
 
     return proj;
 }
+/*
+    Découpe les lignes de niveaux en trois zones afin d'en extraire trois lignes de niveaux significatifs.
+
+    Mat proj -> Prend l'hitogramme représantant les lignes de niveaux
+
+    Renvoie la ligne représentant le candidat parmit toutes les lignes de niveaux.
+*/
 int Image::treat_histogram(Mat proj)
 {
 
@@ -383,7 +235,6 @@ int Image::treat_histogram(Mat proj)
         }
     }
 
-    /////////
     int pas = total.size() / 3; // On divise par trois la taille de l'image projeté
 
     int debut = 0;         // Le début de la zone
@@ -422,8 +273,6 @@ int Image::treat_histogram(Mat proj)
         fin = debut + pas;
     }
 
-    ////////////////
-
     // On choisi la ligne de niveau qui représente l'eau
 
     if (lignes[1] != 0)
@@ -454,7 +303,7 @@ void Image::apply_gabor(int kernel_size, double sigma, double theta, double lamd
     cv::normalize(temps_image, this->image, 0, 255, NORM_MINMAX, CV_8UC1);
 }
 /*
-    Calcul les contours de l'image
+    Calcul les contours de l'image en utilisants Canny
 */
 void Image::detect_edge(int dt, int ut)
 {
@@ -463,16 +312,7 @@ void Image::detect_edge(int dt, int ut)
     this->image = temp_image;
 }
 /*
-    Egalise l'histogramme de l'image
-*/
-void Image::equalize()
-{
-    Mat temp_image;
-    equalizeHist(this->image, temp_image);
-    this->image = temp_image;
-}
-/*
-    Effectue un filtre median en utilisant une matrice de taille ksize
+    Effectue un filtre Gaussen en utilisant une matrice de taille ksize
 */
 void Image::remove_noise(int ksize)
 {
@@ -521,27 +361,6 @@ void Image::show(string windows_name)
 void Image::set_grey(cv::Mat image, int x, int y, int value)
 {
     image.at<Vec3b>(x, y) = value; // Set la valeur de l'image
-}
-/*
-    Récupère la valeur du pixel gris à la position X et Y
-*/
-float Image::get_grey(int x, int y)
-{
-    Vec3b intensity = this->image.at<Vec3b>(x, y);
-
-    return intensity.val[0];
-}
-/*
-    Retourne l'histogramme projeté de l'image
-*/
-Mat Image::get_projected_histogram()
-{
-    return this->projected_histogram;
-}
-void Image::show_projected_histogram()
-{
-    imshow("Histograme projeté", this->histogram_projected);
-    waitKey(0);
 }
 
 /*
