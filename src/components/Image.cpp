@@ -58,6 +58,7 @@ Mat Image::hough_transform(int tresh)
             double x0 = a * rho, y0 = b * rho;
             pt1.x = cvRound(x0 + 1000 * (-b));
             pt1.y = cvRound(y0 + 1000 * (a));
+            cout << pt1 << endl;
             pt2.x = cvRound(x0 - 1000 * (-b));
             pt2.y = cvRound(y0 - 1000 * (a));
 
@@ -259,11 +260,13 @@ Mat Image::calculate_projected_histogram()
 
     return proj;
 }
-vector<int> Image::treat_histogram(Mat proj)
+int Image::treat_histogram(Mat proj)
 {
 
     std::vector<int> total(proj.rows, 0);
     std::vector<int> lignes(3, 0);
+
+    int choix_ligne = -1;
 
     for (int x = 0; x < proj.rows; x++)
     {
@@ -312,7 +315,15 @@ vector<int> Image::treat_histogram(Mat proj)
         fin = debut + pas;
     }
 
-    return lignes;
+    // On choisi la ligne de niveau qui représente l'eau
+
+    if (lignes[1] != 0)
+        choix_ligne = lignes[1];
+
+    else
+        choix_ligne = lignes[0];
+
+    return choix_ligne;
 }
 /*
     Applique une transformée de gabor avec kernel_size comme taille de filtre
