@@ -6,6 +6,127 @@ using namespace cv;
 using namespace std;
 using std::vector;
 
+int Image::pipeline(Mat proj)
+{
+    int threshold = -1;
+
+    // Contenir le total
+    std::vector<int> total(proj.rows, 0);
+
+    // Contenir les lignes
+    std::vector<int> lignes(3, 0);
+
+    int choix_ligne = -1;
+
+    // On compte les blancs et on remplie la matrice
+    for (int x = 0; x < proj.rows; x++)
+    {
+        for (int y = 0; y < proj.cols; y++)
+        {
+            if (proj.at<uchar>(x, y) > 200)
+                total[x]++;
+        }
+    }
+
+    // On recherche les trois lignes de niveaux
+
+    int pas = total.size() / 3; // On divise par trois la taille de l'image projeté
+
+    int debut = 0;         // Le début de la zone
+    int fin = debut + pas; // La fin de la zone
+
+    for (int compteur = 0; compteur < pas; compteur++)
+    {
+        for (int i = debut; i < fin; i++)
+        {
+            if (total[i] != 0)
+            {
+                int temp = total[i];
+
+                if (compteur == 0)
+                {
+                    if (temp > lignes[compteur])
+                        lignes[compteur] = i;
+                }
+                else
+                {
+                    // On cherche le plus petit
+                    if (lignes[compteur] == 0)
+                    {
+                        lignes[compteur] = i;
+                    }
+                    else
+                    {
+                        if (temp < lignes[compteur])
+                            lignes[compteur] = i;
+                    }
+                }
+            }
+        }
+
+        debut = fin;
+        fin = debut + pas;
+    }
+
+    if (lignes[1] != 0)
+        choix_ligne = lignes[1];
+
+    else
+        choix_ligne = lignes[0];
+
+    // Le pas permettant de retrouve la lignes selectionné à l'aide de hough
+    int pas_search = (10 * choix_ligne) / 100;
+
+    // Récupère les lines de la transformé de hough
+
+    try
+    {
+
+        std::cout << "bite" << endl;
+
+        std::vector<Vec2f> lines; //Contient les lignes qu'on va récupérer
+
+        HoughLines(this->image, lines, 2, CV_PI / 2, 120); // Lance la detection des lignes
+
+        std::cout << "On doit aller jusqua la : " << lines.size() << endl;
+
+        for (size_t i = 0; i < lines.size(); i++)
+        {
+            if (lines[i][1] != 0)
+            {
+                float rho = lines[i][0], theta = lines[i][1];
+                Point pt1, pt2;
+                double a = cos(theta), b = sin(theta);
+                double x0 = a * rho, y0 = b * rho;
+                pt1.x = cvRound(x0 + 1000 * (-b));
+                pt1.y = cvRound(y0 + 1000 * (a));
+                pt2.x = cvRound(x0 - 1000 * (-b));
+                pt2.y = cvRound(y0 - 1000 * (a));
+
+                //line(dst, pt1, pt2, Scalar(0, 0, 255), 3, LINE_AA);
+
+                // On vérifie qu'il y a une ligne qui correspond à la ligne donnée en argument
+
+                for (int i = pt1.y - pas_search; i < pt1.y + pas_search; i++)
+                {
+
+                    if (i == choix_ligne)
+                    {
+                        return pt1.y;
+                    }
+                }
+            }
+        }
+    }
+    catch (std::exception &e)
+    {
+        std::cout << e.what() << endl;
+    }
+
+    std::cout << "on est la" << endl;
+
+    return threshold;
+}
 /*
     Applique sobel
 */
@@ -15,58 +136,43 @@ void Image::sobel(int kernel_size, int scale, int delta)
 
     Sobel(this->image, this->image, CV_8U, 0, 1, kernel_size, scale, delta, BORDER_DEFAULT);
 }
-
-Mat Image::hough_transform_prob(int tresh, int rho)
+int Image::hough_transform(int tresh, int number_to_check)
 {
-    vector<Vec4i> lines; // Contient les lignes qu'on va récupérer
+    int ligne = number_to_check;
+    int pas = (10 * number_to_check) / 100;
 
-    Mat cdst;
-
-    HoughLinesP(this->image, lines, 1, CV_PI / 2, tresh); // Lance la transformé
-
-    cvtColor(this->image, cdst, COLOR_GRAY2BGR);
-
-    for (size_t i = 0; i < lines.size(); i++)
-    {
-        Vec4i l = lines[i];
-        line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), 3, LINE_AA);
-    }
-
-    return cdst;
-}
-
-Mat Image::hough_transform(int tresh)
-{
-    // Va contenir les traits de l'image
-    Mat image = Mat::zeros(this->height, this->width, CV_8UC1);
     vector<Vec2f> lines; //Contient les lignes qu'on va récupérer
-    Mat dst;
 
     HoughLines(this->image, lines, 2, CV_PI / 2, tresh); // Lance la detection des lignes
 
-    // cvtColor(this->image, dst, COLOR_GRAY2BGR);
-    cvtColor(image, dst, COLOR_GRAY2BGR);
+    cout << lines.size() << endl;
 
     for (size_t i = 0; i < lines.size(); i++)
     {
         if (lines[i][1] != 0)
         {
             float rho = lines[i][0], theta = lines[i][1];
-            cout << lines[i][1] << endl;
             Point pt1, pt2;
             double a = cos(theta), b = sin(theta);
             double x0 = a * rho, y0 = b * rho;
             pt1.x = cvRound(x0 + 1000 * (-b));
             pt1.y = cvRound(y0 + 1000 * (a));
-            cout << pt1 << endl;
             pt2.x = cvRound(x0 - 1000 * (-b));
             pt2.y = cvRound(y0 - 1000 * (a));
 
-            line(dst, pt1, pt2, Scalar(0, 0, 255), 3, LINE_AA);
+            for (int i = pt1.y - pas; i < pt1.y + pas; i++)
+            {
+                if (i == ligne)
+                {
+                    cvtColor(this->image, this->image, CV_8UC1);
+                    line(this->image, pt1, pt2, Scalar(0, 0, 255), 3, LINE_AA);
+                    return pt1.y;
+                }
+            }
         }
     }
 
-    return dst;
+    return -1;
 }
 /*
     Clusterise l'image en utilisant K-mean
@@ -277,6 +383,7 @@ int Image::treat_histogram(Mat proj)
         }
     }
 
+    /////////
     int pas = total.size() / 3; // On divise par trois la taille de l'image projeté
 
     int debut = 0;         // Le début de la zone
@@ -314,6 +421,8 @@ int Image::treat_histogram(Mat proj)
         debut = fin;
         fin = debut + pas;
     }
+
+    ////////////////
 
     // On choisi la ligne de niveau qui représente l'eau
 

@@ -18,22 +18,20 @@ void hough_pipeline(String PATH)
 
     image.to_gray();
     image.remove_noise(5);
-
-    // On detect les contour de l'image
     image.detect_edge(20, 150);
-    image.show("Canny");
+    image.show("Canny - Image");
 
-    // On cacule l'histogramme projeté
-    //image.calculate_projected_histogram();
+    // Image des lignes de niveaux
+    Mat proj = image.calculate_projected_histogram_cropped();
 
-    //imshow("Projeted - Image", proj);
-    //waitKey(0);
+    // On rècuperes les lignes représentatives
+    int ligne = image.treat_histogram(proj);
 
-    // Calculer la transformé de hough pour des valeurs de 90 degrées
-    //Mat hough = image.hough_transform(100);
+    int houghLine = image.hough_transform(120, ligne);
 
-    //imshow("Hough - Transform", hough);
-    //waitKey(0);
+    cout << "------------------------" << endl;
+    cout << houghLine << endl;
+    cout << ligne << endl;
 }
 
 void pipeline(string PATH)
@@ -43,21 +41,19 @@ void pipeline(string PATH)
     image.to_gray();
     image.remove_noise(5);
 
-    // On detect les contour de l'image
-    image.detect_edge(20, 150);
-    image.show("Canny");
+    // On detecte les contours
+    image.detect_edge(20, 120);
 
-    // On cacule l'histogramme projeté
+    // On calcul l'histogramme des lignes de niveaux
     Mat proj = image.calculate_projected_histogram_cropped();
 
-    imshow("Projecterd - Image", proj);
-    waitKey(0);
+    // on récupère la ligne de niveau qui potentiellement représente le niveua de l'eau
+    int verify = image.treat_histogram(proj);
 
-    // Calculer la transformé de hough pour des valeur de 90 degrées
-    Mat hough = image.hough_transform(100);
+    // On vérifie si la lgine est bonne et si oui elle correspond à quoi
+    //int houghline = image.hough_transform(120, verify);
 
-    imshow("Hough - Transform", hough);
-    waitKey(0);
+    //cout << verify << endl;
 }
 
 int apply_pipeline_on_dir(char *PATH)
@@ -95,22 +91,47 @@ int main()
 
     // Exemple de pipeline
 
-    // apply_pipeline_on_dir("/home/elie/Documents/Projet/Fac/Image/assets/");
-    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/benjy_eau.jpeg");
+    /*Mat image = imread("/home/elie/Documents/Projet/Fac/Image/assets/benjy_eau2.jpeg");
+    cvtColor(image, image, COLOR_BGR2GRAY);
+    imshow("Image", image);
 
-    image.to_gray();
-    image.remove_noise(5);
-    image.detect_edge(20, 150);
-    image.show("Canny - Image");
-
-    // Image des lignes de niveaux
-    Mat proj = image.calculate_projected_histogram_cropped();
-    vector<int> lignes = image.treat_histogram(proj);
-
-    for (int i = 0; i < lignes.size(); i++)
+    for (int y = 0; y < image.rows; y++)
     {
-        cout << lignes[i] << endl;
+        cout << "y =" << y << endl;
+        for (int x = 0; x < image.cols; x++)
+        {
+            int i = (int)image.at<uchar>(x, y);
+            cout << "\t"
+                 << "x =" << x << endl;
+        }
     }
 
-    return 0;
+    cout << "rows = " << image.rows << endl;
+    cout << "cols = " << image.cols << endl;
+
+    // Théoriquement : image  */
+
+    //apply_pipeline_on_dir("/home/elie/Documents/Projet/Fac/Image/assets/");
+    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/jus1.jpeg");
+
+    // On prépare l'image
+    image.to_gray();
+    image.remove_noise(5);
+
+    // On detecte les contours
+    image.detect_edge(20, 120);
+
+    // On calcul l'histogramme des lignes de niveaux
+    Mat proj = image.calculate_projected_histogram_cropped();
+
+    // on récupère la ligne de niveau qui potentiellement représente le niveua de l'eau
+    int verify = image.treat_histogram(proj);
+
+    // On vérifie si la lgine est bonne et si oui elle correspond à quoi
+    int houghline = image.hough_transform(120, verify);
+
+    cout << verify << endl;
+    cout << houghline << endl;
+
+    image.show("string");
 }
