@@ -14,8 +14,12 @@ using namespace cv;
 
 int main()
 {
+    char path[100];
 
-    Image image = Image("/home/elie/Documents/Projet/Fac/Image/assets/coca3.jpeg");
+    cout << "Renseignez le chemin du fichier : ";
+    cin >> path;
+
+    Image image = Image(path);
 
     image.to_gray(); // Transformation en niveua de gris
     image.show("Image - gris");

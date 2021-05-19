@@ -18,7 +18,7 @@ using std::vector;
 int Image::hough_transform(int tresh, int number_to_check)
 {
     int ligne = number_to_check;
-    int pas = (10 * number_to_check) / 100;
+    int pas = 20;
 
     vector<Vec2f> lines; //Contient les lignes qu'on va récupérer
 
