@@ -4,7 +4,7 @@ Ce projet vise à determiner le niveau de remplissage d'un verre rempli d'un liq
 
 ## Getting started
 
-Avant de compilé le projet vérifier que OPENCV est bien installé sur votre machine. Quand cela est fait, renseignez le chemin vers lequel pointe l'installation d'openCV dans le fichier CMakeLists.txt .
+Avant de compiler le projet vérifier que OPENCV est bien installé sur votre machine. Quand cela est fait, renseignez le chemin vers lequel pointe l'installation d'openCV dans le fichier CMakeLists.txt .
 
 La configuration d'openCV étant terminé, effectuez les commandes suivantes (à partir de la racine du projet) :
 
